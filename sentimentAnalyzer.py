@@ -1,7 +1,6 @@
 from functools import reduce
 from textblob import TextBlob
 import pandas as pd
-import matplotlib.pyplot as plt
 
 data = pd.read_csv("sdnThreads.csv", encoding='UTF-8')
 
