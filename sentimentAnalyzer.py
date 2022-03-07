@@ -1,39 +1,38 @@
+from functools import reduce
 from textblob import TextBlob
 import pandas as pd
 import matplotlib.pyplot as plt
-import glob
 
-# Get files
-files = glob.glob("./sdnSchoolYear/" + "*.csv")
-
-# Define functions that analyze for polarity and subjectivity
+data = pd.read_csv("sdnThreads.csv", encoding='UTF-8')
 
 
-def pol(x): return TextBlob(x).sentiment.polarity
-def sub(x): return TextBlob(x).sentiment.subjectivity
+def pol(x):
+    return TextBlob(x).sentiment.polarity
 
 
-# Read 2015 thread
-df = pd.read_csv(files[1], encoding='UTF-8')
-byPost = list()
-totalText = list()
-schoolList = df['school'].unique()
-byPost[1] = schoolList
+def sub(x):
+    return TextBlob(x).sentiment.subjectivity
 
 
-for file in files:
-    df = pd.read_csv(file, encoding='UTF-8')
-    corpus = df.loc[:, ("school", "post")]
+schoolList = pd.DataFrame(data['school'].unique(), columns=["school"])
+ratings = list()
+ratings.append(schoolList)
+
+for i in range(0, 7):
+    year = i + 2014
+    yearlyData = data[data['cycle'] == year]
+    corpus = yearlyData.loc[:, ("school", "post")]
     corpus['post'] = corpus['post'].astype(str)
-    longString = corpus.groupby(
-        ['school'], as_index=False).agg({'post': ' '.join})
 
-    corpus['polarity'] = corpus['post'].apply(pol)
-    corpus['subjectivity'] = corpus['post'].apply(sub)
-    longString['polarity'] = longString['post'].apply(pol)
-    longString['subjectivity'] = longString['post'].apply(sub)
+    corpus['polarity'+str(year)] = corpus['post'].apply(pol)
+    corpus['subjectivity'+str(year)] = corpus['post'].apply(sub)
+    mean_df = corpus.groupby("school").mean()
+    ratings.append(mean_df)
 
-    grouped_df = corpus.groupby("school")
-    mean_df = grouped_df.mean()
+df = reduce(lambda df1, df2: pd.merge(
+    df1, df2, on='school', how="outer"), ratings)
+df.to_csv("sentimentRatings.csv")
 
-    mean_df['polarity']
+longString = corpus.groupby(['school'], as_index=False).agg({'post': ' '.join})
+longString['polarity'] = longString['post'].apply(pol)
+longString['subjectivity'] = longString['post'].apply(sub)
