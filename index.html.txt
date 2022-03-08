@@ -1,0 +1,6 @@
+Welcome to Premed-Analytics, this is built with GitHub Pages
+
+Add the following to the end of the URL to access different visualizations:
+OOS A Rates: /oosARates
+IS A Rates: /isARates
+Network Graph: /networkGraph
